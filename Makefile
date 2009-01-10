@@ -2,20 +2,33 @@
 CC   	?= gcc
 TAR	?= tar
 RM	?= -rm
-CFLAGS	?= -D_FILE_OFFSET_BITS=64 -DFUSE_USE_VERSION=22
-LDFLAGS ?= -lX11 -lfuse
+CFLAGS	:= -D_FILE_OFFSET_BITS=64 -DFUSE_USE_VERSION=22 -ggdb
+LDFLAGS := -lX11 -lfuse
 SRCS	:= xorgfs.c xcalls.c
 OBJS	:= xorgfs.o xcalls.o
 EXE 	?= xorgfs
 README	:= /dev/null
 
-# Special "Quiet printing"
-V	= @
-Q	= $(V:1=)
+# "Quiet printing"
+ifdef V
+  ifeq ("$(origin V)", "command line")
+    Q =
+  endif
+endif
+ifndef V
+  Q = @
+endif
 QUIET_CC   = $(Q:@=@echo	'     CC        '$@;)
 QUIET_LINK = $(Q:@=@echo	'     LINK      '$@;)
 QUIET_AR   = $(Q:@=@echo	'     AR        '$@;)
 QUIET_RM   = $(Q:@=@echo	'     RM        '$(OBJS);)
+
+# Debug support
+ifdef D
+  ifeq ("$(origin D)", "command line")
+    CFLAGS+=-DDEBUG
+  endif
+endif
 
 # Git-r-done! (tm)
 all::
