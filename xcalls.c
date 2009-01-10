@@ -3,19 +3,19 @@
 int xorg_get_cursor_pos(int *x, int *y)
 {
 	Display *dsp = XOpenDisplay(NULL);
-	XEvent event;
+	XButtonEvent event;
 	
 	if (!dsp)
 		return 1;
 
 	XQueryPointer(dsp, RootWindow(dsp, DefaultScreen(dsp)),
-			&event.xbutton.root, &event.xbutton.window,
-			&event.xbutton.x_root, &event.xbutton.y_root,
-			&event.xbutton.x, &event.xbutton.y,
-			&event.xbutton.state);
+			&event.root, &event.window,
+			&event.x_root, &event.y_root,
+			&event.x, &event.y,
+			&event.state);
 
-	*x = event.xbutton.x;
-	*y = event.xbutton.y;
+	*x = event.x;
+	*y = event.y;
 
 	XCloseDisplay(dsp);
 
