@@ -62,7 +62,7 @@ int xorg_get_cursor_pos(int *x, int *y)
  * 
  * n is the size of the clipboard contents
  * 
- * NOTE: user must free this!!
+ * NOTE: user must free return value!!
  */
 char *xorg_get_buffer(unsigned long *n)
 {
@@ -71,7 +71,7 @@ char *xorg_get_buffer(unsigned long *n)
 	unsigned long sel_all = 0;	/* allocated size of sel_buf */
 	Window win;			/* Window */
 	XEvent evt;			/* X Event Structures */
-	unsigned int context =XCLIB_XCOUT_NONE;
+	unsigned int context = XCLIB_XCOUT_NONE;
 	Atom sseln = XA_PRIMARY;
 
 	Display *dpy = XOpenDisplay(NULL);
@@ -89,9 +89,10 @@ char *xorg_get_buffer(unsigned long *n)
 
 	XSelectInput(dpy, win, PropertyChangeMask);
 
-	while (1)
-	{
+	do {
 		/* only get an event if xcout() is doing something */
+		/* We have an if here because it context == XCLIB_XCOUT_NONE
+		 * first time through */
 		if (context != XCLIB_XCOUT_NONE)
 			XNextEvent(dpy, &evt);
 
@@ -106,10 +107,11 @@ char *xorg_get_buffer(unsigned long *n)
 				&context
 		     );
 
-		/* only continue if xcout() is doing something */
+		/* only continue if xcout() is doing something
 		if (context == XCLIB_XCOUT_NONE)
 			break;
-	}
+			*/
+	} while (context != XCLIB_XCOUT_NONE);
 
 	if (sel_len == 0) {
 		sel_buf = NULL;

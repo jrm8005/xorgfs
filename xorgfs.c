@@ -21,6 +21,7 @@ static const char *xorg_buffer = "/snarf";
 static int xorg_getattr(const char *path, struct stat *stbuf)
 {
 	int res = 0;
+	unsigned long sz;
 
 	memset(stbuf, 0, sizeof(struct stat));
 
@@ -32,9 +33,11 @@ static int xorg_getattr(const char *path, struct stat *stbuf)
 		stbuf->st_nlink = 1;
 		stbuf->st_size = 14;
 	} else if (strcmp(path, xorg_buffer) == 0) {
+
+		xorg_get_buffer(&sz);
 		stbuf->st_mode = S_IFREG | 0444;
 		stbuf->st_nlink = 1;
-		stbuf->st_size = 14;
+		stbuf->st_size = sz;
 	} else {
 		res = -ENOENT;
 	}
@@ -77,12 +80,12 @@ static int xorg_open(const char *path, struct fuse_file_info *fi)
 static int xorg_read(const char *path, char *buf, size_t size, off_t offset,
 					  struct fuse_file_info *fi)
 {
-	size_t len;
+	size_t len = 0;
 	(void) fi;
 	char coords[12] = ""; /* TODO This is 12 because I want to encode more info
 				 than coordinates somday */
 	int x=0, y=0; /* Mouse coordinates */
-	char *buff; /* Contents of pastebuffer */
+	unsigned char *buff; /* Contents of pastebuffer */
 	unsigned long buff_l = 0;
 
 	if (strcmp(path, xorg_mouse) == 0) {
@@ -104,9 +107,9 @@ static int xorg_read(const char *path, char *buf, size_t size, off_t offset,
 		 * xorg_get_buffer and its helper function. I hate X11
 		 */
 		buff = xorg_get_buffer(&buff_l);
-		
-		if (buff) {
-			len = buff_l;
+		len = (int)buff_l;
+
+		if (buff && (offset < len)) {
 			if (offset + size > len)
 				size = len - offset;
 			memcpy(buf, buff + offset, size);
